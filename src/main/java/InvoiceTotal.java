@@ -1,25 +1,14 @@
-import java.util.Objects;
-
 public class InvoiceTotal {
-    public int id;
-    public String customerName;
-    public InvoiceStatusEnum status;
-    public Double total;
+    private Integer id;
+    private String customerName;
+    private Double total;
+    private InvoiceStatus status;
 
-    public InvoiceTotal () {}
-
-    public InvoiceTotal(int id, String customerName, InvoiceStatusEnum status, Double total) {
-        this.id = id;
-        this.customerName = customerName;
-        this.status = status;
-        this.total = total;
-    }
-
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -31,14 +20,6 @@ public class InvoiceTotal {
         this.customerName = customerName;
     }
 
-    public InvoiceStatusEnum getStatus() {
-        return status;
-    }
-
-    public void setStatus(InvoiceStatusEnum status) {
-        this.status = status;
-    }
-
     public Double getTotal() {
         return total;
     }
@@ -47,16 +28,12 @@ public class InvoiceTotal {
         this.total = total;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        InvoiceTotal that = (InvoiceTotal) o;
-        return id == that.id && Objects.equals(customerName, that.customerName) && status == that.status && Objects.equals(total, that.total);
+    public InvoiceStatus getStatus() {
+        return status;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, customerName, status, total);
+    public void setStatus(InvoiceStatus status) {
+        this.status = status;
     }
 
     @Override
@@ -64,8 +41,8 @@ public class InvoiceTotal {
         return "InvoiceTotal{" +
                 "id=" + id +
                 ", customerName='" + customerName + '\'' +
-                ", status=" + status +
                 ", total=" + total +
+                ", status=" + status +
                 '}';
     }
 }

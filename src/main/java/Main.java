@@ -38,7 +38,7 @@ public class Main {
         // =========================
         System.out.println("\n=== Q3 - TOTAUX PAR STATUT ===");
 
-        InvoiceStatusTotals totals = dataRetriever.computeStatusTotals();
+        InvoiceStatusTotal totals = dataRetriever.computeStatusTotals();
 
         System.out.println("total_paid = " + totals.getTotalPaid());
         System.out.println("total_confirmed = " + totals.getTotalConfirmed());

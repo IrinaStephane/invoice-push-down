@@ -1,4 +1,4 @@
-public enum InvoiceStatusEnum {
+public enum InvoiceStatus {
     DRAFT,
     CONFIRMED,
     PAID
