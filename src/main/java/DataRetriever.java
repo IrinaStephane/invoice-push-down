@@ -1,3 +1,4 @@
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -102,6 +103,79 @@ public class DataRetriever {
                 return resultSet.getDouble("revenue_percent");
             }
             throw new RuntimeException("Unable to compute weight turnover");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    List<InvoiceTaxSummary> findInvoiceTaxSummaries() {
+        List<InvoiceTaxSummary> list = new ArrayList<>();
+
+        try (Connection connection = dbConnection.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(
+                     """
+                     select i.id as invoice_id,
+                            sum(il.quantity * il.unit_price) as total_ht,
+                            sum(il.quantity * il.unit_price) * t.rate / 100 as total_tva,
+                            sum(il.quantity * il.unit_price) +
+                            (sum(il.quantity * il.unit_price) * t.rate / 100) as total_ttc
+                     from invoice i
+                              join invoice_line il on i.id = il.invoice_id,
+                          tax_config t
+                     group by i.id, t.rate
+                     order by i.id;
+                     """);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()) {
+                InvoiceTaxSummary summary = new InvoiceTaxSummary();
+                summary.setInvoiceId(resultSet.getInt("invoice_id"));
+                summary.setTotalHt(resultSet.getDouble("total_ht"));
+                summary.setTotalTva(resultSet.getDouble("total_tva"));
+                summary.setTotalTtc(resultSet.getDouble("total_ttc"));
+                list.add(summary);
+            }
+
+            return list;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public BigDecimal computeWeightedTurnoverTtc() {
+
+        try (Connection connection = dbConnection.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(
+                     """
+                     select sum(
+                             case
+                                 when i.status = 'PAID' then ttc * 1.0
+                                 when i.status = 'CONFIRMED' then ttc * 0.5
+                                 when i.status = 'DRAFT' then 0
+                                 else 0
+                             end
+                         ) as revenue_percent_ttc
+                     from (
+                              select i.id,
+                                     i.status,
+                                     sum(il.quantity * il.unit_price) +
+                                     (sum(il.quantity * il.unit_price) * t.rate / 100) as ttc
+                              from invoice i
+                                       join invoice_line il on i.id = il.invoice_id,
+                                   tax_config t
+                              group by i.id, i.status, t.rate
+                          ) invoice_ttc
+                              join invoice i on invoice_ttc.id = i.id;
+                     """);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            if (resultSet.next()) {
+                return resultSet.getBigDecimal("revenue_percent_ttc");
+            }
+
+            throw new RuntimeException("Unable to compute weighted turnover TTC");
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
